@@ -1,0 +1,35 @@
+{
+  "name": "ghost-discord-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "env-cmd nodemon src/index.ts",
+    "start": "env-cmd ts-node src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MagsMagnoli/ghost-discord-bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MagsMagnoli/ghost-discord-bot/issues"
+  },
+  "homepage": "https://github.com/MagsMagnoli/ghost-discord-bot#readme",
+  "devDependencies": {
+    "@types/express": "4.17.14",
+    "env-cmd": "10.1.0",
+    "nodemon": "2.0.20",
+    "ts-node": "10.9.1",
+    "typescript": "4.8.4"
+  },
+  "dependencies": {
+    "@tryghost/admin-api": "1.13.1",
+    "axios": "0.27.2",
+    "discord.js": "14.5.0",
+    "express": "4.18.1"
+  }
+}
