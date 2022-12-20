@@ -46,6 +46,11 @@ declare module '@tryghost/admin-api' {
       id: string;
       name: string;
       status: string;
+      tier: GhostAdminAPI.Tier;
+    }
+
+    export interface Tier {
+      id: string;
     }
   }
 

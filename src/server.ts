@@ -94,15 +94,11 @@ export function createServer(bot: Client, ghostAPIClient: GhostAdminAPI) {
       try {
         console.log('Updating member role');
 
-        await updateMemberRole(
-          bot,
-          discordUserId,
-          ghostMember.subscriptions.length > 0 ? 'add' : 'remove',
-        );
+        const roleIds = getDiscordRoleIdsForMember(ghostMember.subscriptions);
 
-        console.log(
-          `Updated member ${memberId} with Discord role ${env.DISCORD_PAID_MEMBER_ROLE_ID}`,
-        );
+        await updateMemberRole(bot, discordUserId, roleIds);
+
+        console.log(`Updated member ${memberId} with Discord roles ${roleIds}`);
       } catch (error) {
         console.error(error);
         return res.status(500).send('Internal server error');
@@ -141,14 +137,12 @@ export function createServer(bot: Client, ghostAPIClient: GhostAdminAPI) {
       try {
         console.log('Updating member role');
 
-        await updateMemberRole(
-          bot,
-          discordUserId,
-          ghostMember.subscriptions.length > 0 ? 'add' : 'remove',
-        );
+        const roleIds = getDiscordRoleIdsForMember(ghostMember.subscriptions);
+
+        await updateMemberRole(bot, discordUserId, roleIds);
 
         console.log(
-          `Updated member ${ghostMember.id} with Discord role ${env.DISCORD_PAID_MEMBER_ROLE_ID}`,
+          `Updated member ${ghostMember.id} with Discord roles ${roleIds}`,
         );
       } catch (error) {
         console.error(`Error updating member role: ${error}`);
@@ -192,7 +186,7 @@ async function updateMemberDiscordId(
 async function updateMemberRole(
   bot: Client,
   discordUserId: string,
-  op: 'add' | 'remove',
+  roleIds: string[],
 ) {
   let guild = bot.guilds.cache.find(
     (guild) => guild.id === env.DISCORD_GUILD_ID,
@@ -208,17 +202,35 @@ async function updateMemberRole(
     user = await guild.members.fetch(discordUserId);
   }
 
-  let role = guild.roles.cache.find(
-    (role) => role.id === env.DISCORD_PAID_MEMBER_ROLE_ID,
-  );
-
-  if (!role) {
-    role = (await guild.roles.fetch(env.DISCORD_PAID_MEMBER_ROLE_ID)) as Role;
+  // refresh discord roles if not cached
+  for (let i = 0; i < discordRoleIds.length; i++) {
+    if (!guild.roles.cache.find((role) => role.id === discordRoleIds[i])) {
+      await guild.roles.fetch(discordRoleIds[i]);
+    }
   }
 
-  if (op === 'add') {
-    await user.roles.add(role);
+  if (roleIds.length > 0) {
+    await user.roles.add(roleIds);
   } else {
-    await user.roles.remove(role);
+    await user.roles.remove(discordRoleIds);
   }
 }
+
+function getDiscordRoleIdsForMember(
+  subscriptions: GhostAdminAPI.Subscription[],
+) {
+  const tierIds = subscriptions.map((subscription) => subscription.tier.id);
+
+  const roleIds = [];
+
+  for (let i = 0; i < ghostTierIds.length; i++) {
+    if (tierIds.includes(ghostTierIds[i])) {
+      roleIds.push(discordRoleIds[i]);
+    }
+  }
+
+  return roleIds;
+}
+
+const discordRoleIds = env.DISCORD_PAID_MEMBER_ROLE_IDS.split(',');
+const ghostTierIds = env.GHOST_PAID_MEMBER_TIER_IDS.split(',');
